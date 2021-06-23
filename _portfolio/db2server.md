@@ -76,7 +76,7 @@ Another issue we had was integrating everything into Azure. This was where my in
 
 Something I got far too invested in was the documentation for the installation process. As I wanted it to be verbose enough that if you had no idea how to set up anything in the server, by the time you finish it, you'd have finished it all up. What I didn't expect was how verbose I became with it. I don't want to say the documentation was 100% perfect as there was just too much to write about but I hope it was enough. I hope that after we are finished with this project that whoever might take over will understand how everything works.
 
-![]({{ site.baseurl }}/img/overkill.png)
+![]({{ site.baseurl }}/img/overkill.PNG)
 
 There was also a lot of issues just with my unfamiliarity with the current DB2 server that caused a lot of problems. This was due to a lot of communication problems that were entirely my fault. I was a bit hesitant in asking as I was not familiar with the team nor did I have too much confidence in asking about simple questions. That has been something that's been improved upon during the latter parts of this project.
 
