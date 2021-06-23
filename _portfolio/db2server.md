@@ -30,52 +30,53 @@ While we intended to have everything sorted out during one term, it ended up bei
 
 We ended up encountering a few issues. One was the backup solution. Due to how we were using one disk for the OS and root while we used another for the database and other miscellanious things, it turns out that we did not have permissions to use Azure's services to back up the database disk nor did we have the subscription to use that. So, I had to get crafty and use what services we could use. Our solution to the backup problem was to use an Azure container (which to me was similar to an Amazon Web Service Bucket), perform a full database backup using mariabackup, mount the container then upload it to the container.
 ```bash
-	#!/bin/bash
+#!/bin/bash
 
-	TIMESTAMP=$(date +%Y%m%d)
-	BASE_PATH="/var/mariadb/backup"
-	FULL_PATH="${BASE_PATH}/full"
+TIMESTAMP=$(date +%Y%m%d)
+BASE_PATH="/var/mariadb/backup"
+FULL_PATH="${BASE_PATH}/full"
 
-	function createbackup {
-			# Removes all backups so we can start with a clean fresh slate
-			# This assumes that the previous database has been backed up.
-			rm -r "${BASE_PATH}"
-			mkdir -p "${FULL_PATH}"
+function createbackup {
+		# Removes all backups so we can start with a clean fresh slate
+		# This assumes that the previous database has been backed up.
+		rm -r "${BASE_PATH}"
+		mkdir -p "${FULL_PATH}"
 
-			# Create the initial full backup
-			mariabackup --backup \
-					--target-dir="${FULL_PATH}"
+		# Create the initial full backup
+		mariabackup --backup \
+				--target-dir="${FULL_PATH}"
 
-			# Create our first incremental backup so every other one can follow it.
-			mkdir "${BASE_PATH}/${TIMESTAMP}"
-			mariabackup --backup \
-					--target-dir="${BASE_PATH}/${TIMESTAMP}" \
-					--incremental-basedir="${FULL_PATH}"
-	}
+		# Create our first incremental backup so every other one can follow it.
+		mkdir "${BASE_PATH}/${TIMESTAMP}"
+		mariabackup --backup \
+				--target-dir="${BASE_PATH}/${TIMESTAMP}" \
+				--incremental-basedir="${FULL_PATH}"
+}
 
 
-	function mountblob {
-			# Mounts the container to the system. Needs error checking.
-			blobfuse /media/blob/ --tmp-path=/mnt/blobtmp \
-			--config-file=/etc/azureblob/azblob.cfg \
-			-o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
+function mountblob {
+		# Mounts the container to the system. Needs error checking.
+		blobfuse /media/blob/ --tmp-path=/mnt/blobtmp \
+		--config-file=/etc/azureblob/azblob.cfg \
+		-o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
 
-			# Compresses and archives the backup to save on storage
-			tar caf "${BASE_PATH}/${TIMESTAMP}.tar.xz" "${FULL_PATH}"
-			# Moves it over to the container so it may be uploaded.
-			mv "${BASE_PATH}/${TIMESTAMP}.tar.xz" /media/blob/
+		# Compresses and archives the backup to save on storage
+		tar caf "${BASE_PATH}/${TIMESTAMP}.tar.xz" "${FULL_PATH}"
+		# Moves it over to the container so it may be uploaded.
+		mv "${BASE_PATH}/${TIMESTAMP}.tar.xz" /media/blob/
 
-			# Dismounts the container so it may be used for later.
-			fusermount -u /media/blob/
-	}
+		# Dismounts the container so it may be used for later.
+		fusermount -u /media/blob/
+}
 
-	createbackup
-	mountblob
+createbackup
+mountblob
 ```
 Another issue we had was integrating everything into Azure. This was where my inexperience with the platform came into play. At first, my solution was to use the standard Debian package `unattended-upgrades` but it turned out Azure have their own solution. Removing that, I then proceeded to set up how Azure do it. Turns out, I didn't have permissions to create the automation system to roll that. So, I had to ask my supervisor to set that up for me. Once that had been sorted out, it was easy going from there. There was a lot I had to learn with how Azure did things as most of my experience comes from using the simple tools that aren't used for platforms such as Azure.
 
 Something I got far too invested in was the documentation for the installation process. As I wanted it to be verbose enough that if you had no idea how to set up anything in the server, by the time you finish it, you'd have finished it all up. What I didn't expect was how verbose I became with it. I don't want to say the documentation was 100% perfect as there was just too much to write about but I hope it was enough. I hope that after we are finished with this project that whoever might take over will understand how everything works.
 
+{:.center}
 ![]({{ site.baseurl }}/img/overkill.PNG)
 
 There was also a lot of issues just with my unfamiliarity with the current DB2 server that caused a lot of problems. This was due to a lot of communication problems that were entirely my fault. I was a bit hesitant in asking as I was not familiar with the team nor did I have too much confidence in asking about simple questions. That has been something that's been improved upon during the latter parts of this project.
