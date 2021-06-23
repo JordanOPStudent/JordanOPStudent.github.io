@@ -44,13 +44,13 @@ function createbackup {
 
 		# Create the initial full backup
 		mariabackup --backup \
-				--target-dir="${FULL_PATH}"
+			--target-dir="${FULL_PATH}"
 
 		# Create our first incremental backup so every other one can follow it.
 		mkdir "${BASE_PATH}/${TIMESTAMP}"
 		mariabackup --backup \
-				--target-dir="${BASE_PATH}/${TIMESTAMP}" \
-				--incremental-basedir="${FULL_PATH}"
+			--target-dir="${BASE_PATH}/${TIMESTAMP}" \
+			--incremental-basedir="${FULL_PATH}"
 }
 
 
